@@ -4,6 +4,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import re
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 
@@ -14,7 +16,7 @@ from pages.desktop.base import Base
 class Home(Base):
 
     _page_title = "Add-ons for Firefox"
-    _first_addon_locator = (By.CSS_SELECTOR, "div.summary > a > h3")
+    _first_addon_locator = (By.CSS_SELECTOR, ".summary > a > h3")
     _other_applications_link_locator = (By.ID, "other-apps")
 
     #Most Popular List
@@ -35,11 +37,13 @@ class Home(Base):
 
     _featured_extensions_title_locator = (By.CSS_SELECTOR, '#featured-extensions > h2')
     _featured_extensions_see_all_locator = (By.CSS_SELECTOR, '#featured-extensions > h2 > a')
-    _featured_extensions_elements_locator = (By.CSS_SELECTOR, '#featured-extensions section:nth-child(1) li')
+    _featured_extensions_elements_locator = (By.CSS_SELECTOR, '#featured-extensions section:nth-child(1) > li')
 
     _category_list_locator = (By.CSS_SELECTOR, "ul#side-categories li")
 
     _extensions_menu_link = (By.CSS_SELECTOR, "#extensions > a")
+
+    _up_and_coming_locator = (By.ID, "upandcoming")
 
     def __init__(self, testsetup, open_url=True):
         """Creates a new instance of the class and gets the page ready for testing."""
@@ -105,6 +109,11 @@ class Home(Base):
     @property
     def featured_extensions_count(self):
         return len(self.selenium.find_elements(*self._featured_extensions_elements_locator))
+
+    @property
+    def up_and_coming_island(self):
+        from pages.desktop.regions.island import Island
+        return Island(self.testsetup, self.selenium.find_element(*self._up_and_coming_locator))
 
     @property
     def explore_side_navigation_header_text(self):
@@ -177,3 +186,67 @@ class Home(Base):
         def users_number(self):
             users_text = self._root_element.find_element(*self._users_locator).text
             return int(users_text.split(' ')[0].replace(',', ''))
+
+    @property
+    def featured_extensions(self):
+        return [self.FeaturedExtensions(self.testsetup, web_element)
+                for web_element in self.selenium.find_elements(*self._featured_extensions_elements_locator)]
+
+    class FeaturedExtensions(Page):
+
+        _star_rating_locator = (By.CSS_SELECTOR, 'div.summary > div.vital > span.rating > span.stars')
+        _total_review_count_locator = (By.CSS_SELECTOR, 'div.summary > div.vital > span.rating > a')
+        _author_locator = (By.CSS_SELECTOR, 'div.addon > div.more > div.byline > a')
+        _number_of_users_locator = (By.CSS_SELECTOR, 'div.more > div.vitals > div.vital > span.adu')
+        _summary_locator = (By.CSS_SELECTOR, 'div.addon > div.more > .addon-summary')
+        _link_locator = (By.CSS_SELECTOR, 'div.addon > .summary')
+
+        def __init__(self, testsetup, web_element):
+            Page.__init__(self, testsetup)
+            self._root_element = web_element
+
+        @property
+        def star_rating(self):
+            self._move_to_addon_flyout()
+            rating = self._root_element.find_element(*self._star_rating_locator).text
+            return re.search('\d', rating).group(0)
+
+        @property
+        def total_review_count(self):
+            self._move_to_addon_flyout()
+            count = self._root_element.find_element(*self._total_review_count_locator).text
+            return count.replace("(", "").replace(")", "")
+
+        @property
+        def author_name(self):
+            self._move_to_addon_flyout()
+            return [element.text for element in self._root_element.find_elements(*self._author_locator)]
+
+        @property
+        def number_of_users(self):
+            self._move_to_addon_flyout()
+            users_no = self._root_element.find_element(*self._number_of_users_locator).text
+            return int(users_no.split()[0].replace(',', ''))
+
+        @property
+        def summary(self):
+            self._move_to_addon_flyout()
+            return self._root_element.find_element(*self._summary_locator).text
+
+        def click_on_addon(self):
+            self._root_element.find_element(*self._link_locator).click()
+            from pages.desktop.details import Details
+            return Details(self.testsetup)
+
+        def _move_to_addon_flyout(self):
+            ActionChains(self.selenium).\
+                move_to_element(self._root_element).\
+                perform()
+
+        def click_first_author(self):
+            author_item = self.selenium.find_element(*self._author_locator)
+            ActionChains(self.selenium).\
+                move_to_element(author_item).click().\
+                perform()
+            from pages.desktop.user import User
+            return User(self.testsetup)
