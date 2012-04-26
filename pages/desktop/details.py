@@ -26,7 +26,7 @@ class Details(Base):
     _no_restart_locator = (By.CSS_SELECTOR, "span.no-restart")
     _authors_locator = (By.XPATH, "//h4[@class='author']/a")
     _summary_locator = (By.ID, "addon-summary")
-    _install_button_locator = (By.CSS_SELECTOR, "p[class='install-button'] > a")
+    _install_button_locator = (By.CSS_SELECTOR, '.button.prominent.add.installer')
     _install_button_attribute_locator = (By.CSS_SELECTOR, '.install-wrapper .install-shell .install.clickHijack')
     _rating_locator = (By.CSS_SELECTOR, "span[itemprop='ratingValue']")
     _total_review_count_locator = (By.CSS_SELECTOR, '#reviews-link > span')
@@ -35,11 +35,11 @@ class Details(Base):
     _view_the_source_locator = (By.CSS_SELECTOR, ".source-code")
     _complete_version_history_locator = (By.CSS_SELECTOR, "p.more > a")
     _description_locator = (By.CSS_SELECTOR, "div.prose")
-    _register_link_locator = (By.CSS_SELECTOR, "li.account > a")
+    _register_link_locator = (By.CSS_SELECTOR, "li.account")
     _login_link_locator = (By.CSS_SELECTOR, "li.account > a:nth-child(2)")
     _other_applications_locator = (By.ID, "other-apps")
     _compatibility_locator = (By.CSS_SELECTOR, '.meta.compat')
-    _review_link_locator = (By.ID, "reviews-link")
+    _review_link_locator = (By.ID, 'reviews-link')
     _daily_users_link_locator = (By.ID, 'daily-users')
 
     _about_addon_locator = (By.CSS_SELECTOR, "section.primary > h2")
@@ -233,7 +233,7 @@ class Details(Base):
 
     @property
     def review_details(self):
-        return self.selenium.find_element(*self._review_details_locator).text
+        return [review.text for review in self.selenium.find_elements(*self._review_details_locator)]
 
     @property
     def often_used_with_header(self):
@@ -414,13 +414,6 @@ class Details(Base):
     def other_addons(self):
         return [self.OtherAddons(self.testsetup, other_addon_web_element)
                 for other_addon_web_element in self.selenium.find_elements(*self._other_addons_by_author_locator)]
-
-    def get_rating_counter(self, rating):
-        elements = self.selenium.find_elements(*self._rating_counter_locator)
-        try:
-            return int(elements[5 - rating].text)
-        except IndexError:
-            return 0
 
     @property
     def previewer(self):

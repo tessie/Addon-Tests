@@ -75,13 +75,15 @@ class TestDetails:
         # check that the release number matches the version number at the top of the page
         Assert.equal('Version %s' % details_page.version_number, details_page.release_version)
 
+    @pytest.mark.smoke
     @pytest.mark.nondestructive
     def test_that_reviews_are_displayed(self, mozwebqa):
         """Test for Litmus 9890."""
         details_page = Details(mozwebqa, "Firebug")
         Assert.equal(details_page.review_title, "Reviews")
         Assert.true(details_page.has_reviews)
-        Assert.not_none(re.search('(\w+\s*){1,}', details_page.review_details))
+        for review in details_page.review_details:
+            Assert.not_none(review)
 
     @pytest.mark.nondestructive
     def test_that_in_often_used_with_addons_are_displayed(self, mozwebqa):
@@ -179,7 +181,6 @@ class TestDetails:
         Assert.false(image_viewer.is_visible)
 
     @pytest.mark.nondestructive
-    @pytest.mark.xfail(reason="waiting for the release of selenium 2.21")
     def test_navigation_buttons_for_image_viewer(self, mozwebqa):
         """
         Test for Litmus 4846.
@@ -339,6 +340,7 @@ class TestDetails:
         Assert.true(details_page.is_devs_comments_section_expanded())
         Assert.not_none(re.match('(\w+\s*){3,}', details_page.devs_comments_message))
 
+    @pytest.mark.smoke
     @pytest.mark.nondestructive
     def test_that_add_to_collection_flyout_for_anonymous_users(self, mozwebqa):
         """

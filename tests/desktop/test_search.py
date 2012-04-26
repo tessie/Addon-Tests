@@ -209,7 +209,7 @@ class TestSearch:
         """
         search_page = Home(mozwebqa).header.search_for('firebug')
         search_page.sort_by('Recently Updated')
-        Assert.true('sort=updated' in search_page.get_url_current_page())
+        Assert.contains('sort=updated', search_page.get_url_current_page())
         results = [i.updated_date for i in search_page.results]
         Assert.is_sorted_descending(results)
         search_page.paginator.click_next_page()
@@ -225,7 +225,7 @@ class TestSearch:
         """
         search_page = Home(mozwebqa).header.search_for('firebug')
         search_page.sort_by('Most Users')
-        Assert.true('sort=users' in search_page.get_url_current_page())
+        Assert.contains('sort=users', search_page.get_url_current_page())
         Assert.is_sorted_descending([i.users for i in search_page.results])
 
     @pytest.mark.nondestructive
@@ -244,7 +244,6 @@ class TestSearch:
         Assert.greater_equal(result_count, search_page.filter.results_count)
 
     @pytest.mark.nondestructive
-    @pytest.mark.xfail(reason="Bugzilla 722647")
     def test_that_search_results_return_20_results_per_page(self, mozwebqa):
         """
         Test for Litmus 17346.
