@@ -83,11 +83,6 @@ class Base(Page):
         from pages.desktop.regions.breadcrumbs import Breadcrumbs
         return Breadcrumbs(self.testsetup).breadcrumbs
 
-    @property
-    def paginator(self):
-        from pages.desktop.regions.paginator import Paginator
-        return Paginator(self.testsetup)
-
     def _extract_iso_dates(self, date_format, *locator):
         """
         Returns a list of iso formatted date strings extracted from
@@ -210,6 +205,14 @@ class Base(Page):
         @property
         def is_browserid_login_available(self):
             return self.is_element_visible(*self._login_browser_id_locator)
+
+        @property
+        def is_login_link_visible(self):
+            return self.is_element_visible(*self._login_normal_locator)
+
+        @property
+        def is_register_link_visible(self):
+            return self.is_element_visible(*self._register_locator)
 
         def click_logout(self):
             self.selenium.find_element(*self._logout_locator).click()

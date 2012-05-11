@@ -29,21 +29,18 @@ class Details(Base):
     _install_button_locator = (By.CSS_SELECTOR, '.button.prominent.add.installer')
     _install_button_attribute_locator = (By.CSS_SELECTOR, '.install-wrapper .install-shell .install.clickHijack')
     _rating_locator = (By.CSS_SELECTOR, "span[itemprop='ratingValue']")
-    _total_review_count_locator = (By.CSS_SELECTOR, '#reviews-link > span')
     _license_link_locator = (By.CSS_SELECTOR, ".source-license > a")
-    _whats_this_license_locator = (By.CSS_SELECTOR, ".license-faq")
-    _view_the_source_locator = (By.CSS_SELECTOR, ".source-code")
+    _whats_this_license_locator = (By.CSS_SELECTOR, "a.license-faq")
+    _view_the_source_locator = (By.CSS_SELECTOR, "a.source-code")
     _complete_version_history_locator = (By.CSS_SELECTOR, "p.more > a")
     _description_locator = (By.CSS_SELECTOR, "div.prose")
-    _register_link_locator = (By.CSS_SELECTOR, "li.account")
-    _login_link_locator = (By.CSS_SELECTOR, "li.account > a:nth-child(2)")
     _other_applications_locator = (By.ID, "other-apps")
     _compatibility_locator = (By.CSS_SELECTOR, '.meta.compat')
     _review_link_locator = (By.ID, 'reviews-link')
     _daily_users_link_locator = (By.ID, 'daily-users')
 
     _about_addon_locator = (By.CSS_SELECTOR, "section.primary > h2")
-    _version_information_locator = (By.CSS_SELECTOR, "#detail-relnotes")
+    _version_information_locator = (By.ID, "detail-relnotes")
     _version_information_heading_locator = (By.CSS_SELECTOR, "#detail-relnotes > h2")
     _version_information_heading_link_locator = (By.CSS_SELECTOR, "#detail-relnotes > h2 > a")
     _release_version_locator = (By.CSS_SELECTOR, "div.info > h3 > a")
@@ -88,20 +85,11 @@ class Details(Base):
     _development_channel_content_locator = (By.CSS_SELECTOR, "#beta-channel > div.content")
     _development_version_locator = (By.CSS_SELECTOR, '.beta-version')
 
-    _next_link_locator = (By.CSS_SELECTOR, ".paginator .rel > a:nth-child(3)")
-    _previous_link_locator = (By.CSS_SELECTOR, ".paginator .rel > a:nth-child(2)")
-    _last_page_link_locator = (By.CSS_SELECTOR, ".paginator .rel > a:nth-child(4)")
-    _first_page_link_locator = (By.CSS_SELECTOR, ".paginator .rel > a:nth-child(1)")
-
     _add_to_favorites_updating_locator = (By.CSS_SELECTOR, "a.ajax-loading")
 
     # contribute to addon
     _contribute_button_locator = (By.ID, 'contribute-button')
     _paypal_login_dialog_locator = (By.ID, 'wrapper')
-
-    _version_license_faq = (By.CSS_SELECTOR, 'div.info .license-faq')
-    _view_the_source_code = (By.CSS_SELECTOR, 'div.info .source-code')
-    _frequently_asked_question_locator = (By.CSS_SELECTOR, '.prose > header > h2')
 
     def __init__(self, testsetup, addon_name=None):
         #formats name for url
@@ -200,14 +188,6 @@ class Details(Base):
         return self.selenium.find_element(*self._description_locator).text
 
     @property
-    def register_link(self):
-        return self.selenium.find_element(*self._register_link_locator).text
-
-    @property
-    def login_link(self):
-        return self.selenium.find_element(*self._login_link_locator).text
-
-    @property
     def other_apps(self):
         return self.selenium.find_element(*self._other_applications_locator).text
 
@@ -251,14 +231,6 @@ class Details(Base):
     def compatible_applications(self):
         return self.selenium.find_element(*self._compatibility_locator).text
 
-    def click_version_information_heading(self):
-        return self.selenium.find_element(*self._version_information_heading_link_locator).click()
-
-    @property
-    def is_version_information_section_expanded(self):
-        expand_info = self.selenium.find_element(*self._version_information_locator).get_attribute("class")
-        return ("expanded" in expand_info)
-
     @property
     def is_version_information_install_button_visible(self):
         return self.is_element_visible(*self._install_button_locator)
@@ -275,12 +247,27 @@ class Details(Base):
         return self.is_element_visible(*self._whats_this_license_locator)
 
     @property
+    def license_faq_text(self):
+        return self.selenium.find_element(*self._whats_this_license_locator).text
+
+    @property
     def is_source_code_license_information_visible(self):
         return self.is_element_visible(*self._source_code_license_information_locator)
 
     @property
     def is_view_the_source_link_visible(self):
         return self.is_element_visible(*self._view_the_source_locator)
+
+    def click_view_source_code(self):
+        self.selenium.find_element(*self._view_the_source_locator).click()
+        from pages.desktop.addons_site import ViewAddonSource
+        addon_source = ViewAddonSource(self.testsetup)
+        WebDriverWait(self.selenium, 10).until(lambda s: addon_source.is_file_viewer_visible)
+        return addon_source
+
+    @property
+    def view_source_code_text(self):
+        return self.selenium.find_element(*self._view_the_source_locator).text
 
     @property
     def is_complete_version_history_visible(self):
@@ -321,36 +308,6 @@ class Details(Base):
     def part_of_collections(self):
         return [self.PartOfCollectionsSnippet(self.testsetup, web_element)
                 for web_element in self.selenium.find_elements(*self._part_of_collections_list_locator)]
-
-    def page_forward(self):
-        self.selenium.find_element(*self._next_link_locator).click()
-
-    def page_back(self):
-        self.selenium.find_element(*self._previous_link_locator).click()
-
-    def go_to_last_page(self):
-        self.selenium.find_element(*self._last_page_link_locator).click()
-
-    def go_to_first_page(self):
-        self.selenium.find_element(*self._first_page_link_locator).click()
-
-    @property
-    def is_prev_link_enabled(self):
-        button = self.selenium.find_element(*self._previous_link_locator).get_attribute('class')
-        return not ("disabled" in button)
-
-    @property
-    def is_prev_link_visible(self):
-        return self.is_element_visible(*self._previous_link_locator)
-
-    @property
-    def is_next_link_enabled(self):
-        button = self.selenium.find_element(*self._next_link_locator).get_attribute('class')
-        return not("disabled" in button)
-
-    @property
-    def is_next_link_visible(self):
-        return self.is_element_visible(*self._next_link_locator)
 
     @property
     def is_reviews_section_in_view(self):
@@ -492,12 +449,12 @@ class Details(Base):
 
     def click_version_information_header(self):
         self.selenium.find_element(*self._version_information_heading_link_locator).click()
-        WebDriverWait(self.selenium, 10).until(lambda s: self.is_version_information_expanded)
+        WebDriverWait(self.selenium, 10).until(lambda s: self.is_version_information_section_expanded)
 
     @property
-    def is_version_information_expanded(self):
-        is_expanded = self.selenium.find_element(*self._version_information_locator).get_attribute('class')
-        return "expanded" in is_expanded
+    def is_version_information_section_expanded(self):
+        element_class = self.selenium.find_element(*self._version_information_locator).get_attribute("class")
+        return "expanded" in element_class
 
     def click_devs_comments(self):
         self.selenium.find_element(*self._devs_comments_toggle_locator).click()
@@ -608,15 +565,3 @@ class Details(Base):
     @property
     def total_review_count(self):
         return self.selenium.find_element(*self._total_review_count_locator).text
-
-    @property
-    def license_faq(self):
-        return self.selenium.find_element(*self._version_license_faq)
-
-    @property
-    def view_source_code(self):
-        return self.selenium.find_element(*self._view_the_source_code)
-
-    @property
-    def freq_asked_question(self):
-        return self.selenium.find_element(*self._frequently_asked_question_locator).text

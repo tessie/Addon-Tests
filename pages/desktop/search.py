@@ -46,10 +46,6 @@ class SearchHome(Base):
         return self.is_element_present(*self._no_results_locator)
 
     @property
-    def no_results_text(self):
-        return self.selenium.find_element(*self._no_results_locator).text
-
-    @property
     def number_of_results_text(self):
         return self.selenium.find_element(*self._number_of_results_found).text
 
@@ -82,6 +78,11 @@ class SearchHome(Base):
     def results(self):
         return [self.SearchResult(self.testsetup, web_element)
                 for web_element in self.selenium.find_elements(*self._results_locator)]
+
+    @property
+    def paginator(self):
+        from pages.desktop.regions.paginator import Paginator
+        return Paginator(self.testsetup)
 
     class SearchResult(Page):
         _name_locator = (By.CSS_SELECTOR, 'div.info > h3 > a')

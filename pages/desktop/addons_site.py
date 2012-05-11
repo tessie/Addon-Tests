@@ -47,6 +47,11 @@ class ViewReviews(Base):
         """Returns review object with index."""
         return [self.ReviewSnippet(self.testsetup, web_element) for web_element in self.selenium.find_elements(*self._review_locator)]
 
+    @property
+    def paginator(self):
+        from pages.desktop.regions.paginator import Paginator
+        return Paginator(self.testsetup)
+
     class ReviewSnippet(Base):
 
         _review_text_locator = (By.CSS_SELECTOR, ".description")
@@ -82,10 +87,16 @@ class ViewReviews(Base):
         def delete(self):
             self._root_element.find_element(*self._delete_review_locator).click()
 
+
 class UserFAQ(Base):
 
     _license_question_locator = (By.CSS_SELECTOR, '#license')
     _license_answer_locator = (By.CSS_SELECTOR, '#license + dd')
+    _page_header_locator = (By.CSS_SELECTOR, '.prose > header > h2')
+
+    @property
+    def header_text(self):
+        return self.selenium.find_element(*self._page_header_locator).text
 
     @property
     def license_question(self):
@@ -94,3 +105,12 @@ class UserFAQ(Base):
     @property
     def license_answer(self):
         return self.selenium.find_element(*self._license_answer_locator).text
+
+
+class ViewAddonSource(Base):
+
+    _file_viewer_locator = (By.ID, 'file-viewer')
+
+    @property
+    def is_file_viewer_visible(self):
+        return self.is_element_visible(*self._file_viewer_locator)
