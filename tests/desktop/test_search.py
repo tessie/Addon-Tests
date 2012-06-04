@@ -29,7 +29,7 @@ class TestSearch:
         """
         home_page = Home(mozwebqa)
         search_page = home_page.header.search_for('addon')
-        
+
         expected_page = 1
 
         # On the first page, "<<" and "previous" are not active, but "next" and ">>" are active.
@@ -54,7 +54,7 @@ class TestSearch:
         search_page.paginator.click_last_page()
 
         expected_page = search_page.paginator.total_page_number
-        
+
         Assert.false(search_page.paginator.is_prev_page_disabled)
         Assert.false(search_page.paginator.is_first_page_disabled)
         Assert.true(search_page.paginator.is_next_page_disabled)
@@ -173,7 +173,7 @@ class TestSearch:
         search_page = Home(mozwebqa).header.search_for('1')
 
         Assert.greater(search_page.result_count, 0)
-        Assert.true(int(search_page.number_of_results_text.split()[0]) > 0)
+        Assert.greater(int(search_page.number_of_results_text.replace(',', '').split()[0]), 0)
 
     @pytest.mark.native
     @pytest.mark.nondestructive
@@ -183,7 +183,7 @@ class TestSearch:
         https://litmus.mozilla.org/show_test.cgi?id=17342
         """
         search_page = Home(mozwebqa).header.search_for('firebug')
-        search_page.sort_by('Weekly Downloads')
+        search_page.click_sort_by('Weekly Downloads')
         Assert.true('sort=downloads' in search_page.get_url_current_page())
         downloads = [i.downloads for i in search_page.results]
         Assert.is_sorted_descending(downloads)
@@ -200,7 +200,7 @@ class TestSearch:
         https://litmus.mozilla.org/show_test.cgi?id=17343
         """
         search_page = Home(mozwebqa).header.search_for('firebug')
-        search_page.sort_by('Newest')
+        search_page.click_sort_by('Newest')
         Assert.true('sort=created' in search_page.get_url_current_page())
         Assert.is_sorted_descending([i.created_date for i in search_page.results])
 
@@ -212,7 +212,7 @@ class TestSearch:
         https://litmus.mozilla.org/show_test.cgi?id=17345
         """
         search_page = Home(mozwebqa).header.search_for('firebug')
-        search_page.sort_by('Recently Updated')
+        search_page.click_sort_by('Recently Updated')
         Assert.contains('sort=updated', search_page.get_url_current_page())
         results = [i.updated_date for i in search_page.results]
         Assert.is_sorted_descending(results)
@@ -228,7 +228,7 @@ class TestSearch:
         https://litmus.mozilla.org/show_test.cgi?id=24867
         """
         search_page = Home(mozwebqa).header.search_for('firebug')
-        search_page.sort_by('Most Users')
+        search_page.click_sort_by('Most Users')
         Assert.contains('sort=users', search_page.get_url_current_page())
         Assert.is_sorted_descending([i.users for i in search_page.results])
 
@@ -279,6 +279,7 @@ class TestSearch:
         else:
             Assert.equal(search_page.result_count, number)
 
+    @pytest.mark.native
     @pytest.mark.smoke
     @pytest.mark.nondestructive
     def test_searching_for_collections_returns_results(self, mozwebqa):
@@ -292,6 +293,7 @@ class TestSearch:
 
         Assert.true(amo_search_results_page.result_count > 0)
 
+    @pytest.mark.native
     @pytest.mark.smoke
     @pytest.mark.nondestructive
     def test_searching_for_personas_returns_results(self, mozwebqa):
@@ -305,6 +307,7 @@ class TestSearch:
 
         Assert.true(amo_personas_page.persona_count > 0)
 
+    @pytest.mark.native
     @pytest.mark.nondestructive
     def test_searching_for_theme_returns_results(self, mozwebqa):
         """

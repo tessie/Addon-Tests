@@ -11,7 +11,6 @@ from pages.page import Page
 
 class Breadcrumbs(Page):
     _breadcrumbs_locator = (By.CSS_SELECTOR, "#breadcrumbs li")
-    _breadcrumbs_text_locator = (By.ID, "breadcrumbs")
 
     @property
     def breadcrumbs(self):
@@ -19,8 +18,7 @@ class Breadcrumbs(Page):
                 for breadcrumb_list_item in self.selenium.find_elements(*self._breadcrumbs_locator)]
 
     class BreadcrumbItem(Page):
-        _breadcrumbs_locator = (By.CSS_SELECTOR, ' li')  # breadcrumbs elements locator
-        _link_locator = (By.CSS_SELECTOR, ' a')
+        _link_locator = (By.CSS_SELECTOR, 'a')
 
         def __init__(self, testsetup, breadcrumb_list_element):
             Page.__init__(self, testsetup)
