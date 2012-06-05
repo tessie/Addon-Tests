@@ -100,6 +100,7 @@ class TestHome:
         Assert.true(featured_persona_page.is_the_current_page)
         Assert.equal(featured_persona_page.persona_header, 'Personas')
 
+    @pytest.mark.native
     @pytest.mark.nondestructive
     def test_that_extensions_link_loads_extensions_page(self, mozwebqa):
         """
@@ -183,7 +184,7 @@ class TestHome:
         extensions_page = home_page.click_to_explore('top_rated')
 
         Assert.contains('sort=rating', extensions_page.get_url_current_page())
-        Assert.equal('Top Rated', extensions_page.default_selected_tab)
+        Assert.equal('Top Rated', extensions_page.sorter.sorted_by)
 
     @pytest.mark.nondestructive
     def test_that_clicking_most_popular_shows_addons_sorted_by_users(self, mozwebqa):
@@ -195,7 +196,7 @@ class TestHome:
         extensions_page = home_page.click_to_explore('popular')
 
         Assert.contains('sort=users', extensions_page.get_url_current_page())
-        Assert.equal('Most Users', extensions_page.default_selected_tab)
+        Assert.equal('Most Users', extensions_page.sorter.sorted_by)
 
     @pytest.mark.nondestructive
     def test_that_clicking_featured_shows_addons_sorted_by_featured(self, mozwebqa):
@@ -207,7 +208,7 @@ class TestHome:
         extensions_page = home_page.click_to_explore('featured')
 
         Assert.contains('sort=featured', extensions_page.get_url_current_page())
-        Assert.equal('Featured', extensions_page.default_selected_tab)
+        Assert.equal('Featured', extensions_page.sorter.sorted_by)
 
     @pytest.mark.nondestructive
     @pytest.mark.litmus(25744)
@@ -223,7 +224,7 @@ class TestHome:
     @pytest.mark.native
     @pytest.mark.nondestructive
     @pytest.mark.litmus([25745, 25747, 25749, 25751, 25754, 25756, 25758, 25760, 25763, 25764])
-    @pytest.mark.xfail(reason="waiting for the release of selenium 2.21")
+    @pytest.mark.xfail(reason = 'Disabled until the issue causing the fail is found and fixed.')
     def test_the_name_of_each_site_navigation_menu_in_the_header(self, mozwebqa):
         home_page = Home(mozwebqa)
 
@@ -273,7 +274,7 @@ class TestHome:
             Assert.equal(len(up_and_coming_island.addons), 6)
             up_and_coming_island.pager.prev()
 
-    @pytest.mark.xfail(reason="very flaky, see refactor task: https://www.pivotaltracker.com/story/show/28494843")
+    @pytest.mark.xfail(reason = "very flaky, see refactor task: https://www.pivotaltracker.com/story/show/28494843")
     @pytest.mark.nondestructive
     def test_addons_author_link(self, mozwebqa):
         """

@@ -28,7 +28,7 @@ class Details(Base):
     _summary_locator = (By.ID, "addon-summary")
     _install_button_locator = (By.CSS_SELECTOR, '.button.prominent.add.installer')
     _install_button_attribute_locator = (By.CSS_SELECTOR, '.install-wrapper .install-shell .install.clickHijack')
-    _rating_locator = (By.CSS_SELECTOR, "span[itemprop='ratingValue']")
+    _rating_locator = (By.CSS_SELECTOR, "span.stars.large")
     _license_link_locator = (By.CSS_SELECTOR, ".source-license > a")
     _whats_this_license_locator = (By.CSS_SELECTOR, "a.license-faq")
     _view_the_source_locator = (By.CSS_SELECTOR, "a.source-code")
@@ -139,7 +139,9 @@ class Details(Base):
     def click_view_statistics(self):
         self.selenium.find_element(*self._daily_users_link_locator).click()
         from pages.desktop.statistics import Statistics
-        return Statistics(self.testsetup)
+        stats_page = Statistics(self.testsetup)
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: stats_page.is_chart_loaded) 
+        return stats_page
 
     @property
     def daily_users_number(self):
@@ -168,7 +170,7 @@ class Details(Base):
 
     @property
     def rating(self):
-        return self.selenium.find_element(*self._rating_locator).text
+        return re.findall("\d", self.selenium.find_element(*self._rating_locator).text)[0]
 
     def click_whats_this_license(self):
         self.selenium.find_element(*self._whats_this_license_locator).click()
@@ -343,10 +345,12 @@ class Details(Base):
 
     @property
     def website(self):
-        return self.selenium.find_element(*self._website_locator).get_attribute('href')
+        url = self.selenium.find_element(*self._website_locator).get_attribute('href')
+        return self._extract_url_from_link(url)
 
     def click_website_link(self):
         self.selenium.find_element(*self._website_locator).click()
+        WebDriverWait(self.selenium, 10).until(lambda s: self.selenium.title)
 
     @property
     def support_url(self):
@@ -528,6 +532,10 @@ class Details(Base):
 
         def __init__(self, testsetup):
             Page.__init__(self, testsetup)
+
+            WebDriverWait(self.selenium, self.timeout).until(
+                lambda s: s.find_element(*self._make_contribution_button_locator),
+                "Timeout waiting for 'make contribution' button.")
 
         def click_make_contribution_button(self):
             self.selenium.find_element(*self._make_contribution_button_locator).click()
