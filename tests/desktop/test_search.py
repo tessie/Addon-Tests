@@ -28,7 +28,7 @@ class TestSearch:
         5. Click "previous", all buttons are highlighted.
         """
         home_page = Home(mozwebqa)
-        search_page = home_page.header.search_for('addon')
+        search_page = home_page.search_for('addon')
 
         expected_page = 1
 
@@ -73,42 +73,22 @@ class TestSearch:
         Assert.equal(search_page.paginator.page_number, expected_page)
 
     @pytest.mark.nondestructive
-    def test_that_searching_with_unicode_characters_returns_results(self, mozwebqa):
+    @pytest.mark.parametrize('term', [
+            # 9575
+            u'\u0421\u043b\u043e\u0432\u0430\u0440\u0438 \u042f\u043d\u0434\u0435\u043a\u0441',
+            'fox',  # 9561
+            '',     # 11759
+            '1',    # 17347
+        ])
+    def test_that_various_search_terms_return_results(self, mozwebqa, term):
         """
-        Test for Litmus 9575.
+        Test for Litmus 9575, 9561, 11759, and 17347.
         https://litmus.mozilla.org/show_test.cgi?id=9575
-        """
-        home_page = Home(mozwebqa)
-        search_str = u'\u0421\u043b\u043e\u0432\u0430\u0440\u0438 \u042f\u043d\u0434\u0435\u043a\u0441'
-        search_page = home_page.header.search_for(search_str)
-
-        Assert.contains(search_str, search_page.search_results_title)
-        Assert.false('0 matching results' in search_page.number_of_results_text)
-
-    @pytest.mark.nondestructive
-    def test_that_searching_with_substrings_returns_results(self, mozwebqa):
-        """
-        Test for Litmus 9561.
         https://litmus.mozilla.org/show_test.cgi?id=9561
-        """
-        home_page = Home(mozwebqa)
-        search_page = home_page.header.search_for('fox')
-
-        Assert.false(search_page.is_no_results_present, 'No results were found')
-
-        results_text_summary = search_page.number_of_results_text
-        Assert.not_equal(u'0 matching results', results_text_summary)
-
-        Assert.true(int(results_text_summary.split()[0]) > 1)
-
-    @pytest.mark.nondestructive
-    def test_that_blank_search_returns_results(self, mozwebqa):
-        """
-        Test for Litmus 11759.
         https://litmus.mozilla.org/show_test.cgi?id=11759
+        https://litmus.mozilla.org/show_test.cgi?id=17347
         """
-        home_page = Home(mozwebqa)
-        search_page = home_page.header.search_for("")
+        search_page = Home(mozwebqa).search_for(term)
 
         Assert.false(search_page.is_no_results_present)
         Assert.greater(search_page.result_count, 0)
@@ -121,7 +101,7 @@ class TestSearch:
         """
         home_page = Home(mozwebqa)
         search_keyword = 'Search term'
-        search_page = home_page.header.search_for(search_keyword)
+        search_page = home_page.search_for(search_keyword)
 
         expected_title = '%s :: Search :: Add-ons for Firefox' % search_keyword
         Assert.equal(expected_title, search_page.page_title)
@@ -134,7 +114,7 @@ class TestSearch:
         https://litmus.mozilla.org/show_test.cgi?id=15314
         """
         home_page = Home(mozwebqa)
-        search_page = home_page.header.search_for('fire')
+        search_page = home_page.search_for('fire')
 
         results = [result.name  for result in search_page.results]
 
@@ -148,7 +128,7 @@ class TestSearch:
         """
         home_page = Home(mozwebqa)
         search_term = 'cool'
-        search_page = home_page.header.search_for(search_term)
+        search_page = home_page.search_for(search_term)
         Assert.false(search_page.is_no_results_present)
 
         for i in range(0, len(search_page.results)):
@@ -158,22 +138,11 @@ class TestSearch:
                 devs_comments = ''
                 details_page = search_page.results[i].click_result()
                 if details_page.is_devs_comments_section_present:
-                    details_page.click_devs_comments()
+                    details_page.expand_devs_comments()
                     devs_comments = details_page.devs_comments_message
                 search_range = details_page.description + devs_comments
                 Assert.contains(search_term, search_range.lower())
                 details_page.return_to_previous_page()
-
-    @pytest.mark.nondestructive
-    def test_that_searching_with_numerals_returns_results(self, mozwebqa):
-        """
-        Test for Litmus 17347.
-        https://litmus.mozilla.org/show_test.cgi?id=17347
-        """
-        search_page = Home(mozwebqa).header.search_for('1')
-
-        Assert.greater(search_page.result_count, 0)
-        Assert.greater(int(search_page.number_of_results_text.replace(',', '').split()[0]), 0)
 
     @pytest.mark.native
     @pytest.mark.nondestructive
@@ -182,7 +151,7 @@ class TestSearch:
         Test for Litmus 17342.
         https://litmus.mozilla.org/show_test.cgi?id=17342
         """
-        search_page = Home(mozwebqa).header.search_for('firebug')
+        search_page = Home(mozwebqa).search_for('firebug')
         search_page.click_sort_by('Weekly Downloads')
         Assert.true('sort=downloads' in search_page.get_url_current_page())
         downloads = [i.downloads for i in search_page.results]
@@ -199,7 +168,7 @@ class TestSearch:
         Test for Litmus 17343.
         https://litmus.mozilla.org/show_test.cgi?id=17343
         """
-        search_page = Home(mozwebqa).header.search_for('firebug')
+        search_page = Home(mozwebqa).search_for('firebug')
         search_page.click_sort_by('Newest')
         Assert.true('sort=created' in search_page.get_url_current_page())
         Assert.is_sorted_descending([i.created_date for i in search_page.results])
@@ -211,7 +180,7 @@ class TestSearch:
         Test for Litmus 17345.
         https://litmus.mozilla.org/show_test.cgi?id=17345
         """
-        search_page = Home(mozwebqa).header.search_for('firebug')
+        search_page = Home(mozwebqa).search_for('firebug')
         search_page.click_sort_by('Recently Updated')
         Assert.contains('sort=updated', search_page.get_url_current_page())
         results = [i.updated_date for i in search_page.results]
@@ -227,7 +196,7 @@ class TestSearch:
         Test for Litmus 24867.
         https://litmus.mozilla.org/show_test.cgi?id=24867
         """
-        search_page = Home(mozwebqa).header.search_for('firebug')
+        search_page = Home(mozwebqa).search_for('firebug')
         search_page.click_sort_by('Most Users')
         Assert.contains('sort=users', search_page.get_url_current_page())
         Assert.is_sorted_descending([i.users for i in search_page.results])
@@ -240,7 +209,7 @@ class TestSearch:
         """
 
         home_page = Home(mozwebqa)
-        search_page = home_page.header.search_for('development')
+        search_page = home_page.search_for('development')
         result_count = search_page.filter.results_count
         Assert.greater(result_count, 0)
 
@@ -254,7 +223,7 @@ class TestSearch:
         https://litmus.mozilla.org/show_test.cgi?id=17346
         """
         home_page = Home(mozwebqa)
-        search_page = home_page.header.search_for('deutsch')
+        search_page = home_page.search_for('deutsch')
 
         first_expected = 1
         second_expected = 20
@@ -280,47 +249,32 @@ class TestSearch:
             Assert.equal(search_page.result_count, number)
 
     @pytest.mark.native
-    @pytest.mark.smoke
     @pytest.mark.nondestructive
-    def test_searching_for_collections_returns_results(self, mozwebqa):
+    @pytest.mark.smoke
+    @pytest.mark.parametrize(('addon_type', 'term', 'breadcrumb_component'),[
+            ('Themes', 'nasa', 'Themes'),           # 17350
+            ('Extensions', 'fire', 'Extensions'),
+            ('Personas', 'fox', 'Personas'),        # 17349
+            ('Collections', 'web', 'Collections'),  # 17352
+            # these last two depend on the More menu
+            # ('Add-ons for Mobile', 'fire', 'Extensions')
+            # ('Dictionaries & Language Packs', 'a', 'Dictionaries'),
+        ])
+    def test_searching_for_addon_type_returns_results_of_correct_type(self, mozwebqa, 
+        addon_type, term, breadcrumb_component):
         """
-        Test for Litmus 17352.
+        Test for Litmus 17350, 17349, 17352
+        https://litmus.mozilla.org/show_test.cgi?id=17350
+        https://litmus.mozilla.org/show_test.cgi?id=17349
         https://litmus.mozilla.org/show_test.cgi?id=17352
         """
-        home_page = Home(mozwebqa)
-        amo_collection_page = home_page.header.site_navigation_menu("Collections").click()
-        amo_search_results_page = amo_collection_page.search_for('web')
-
-        Assert.true(amo_search_results_page.result_count > 0)
-
-    @pytest.mark.native
-    @pytest.mark.smoke
-    @pytest.mark.nondestructive
-    def test_searching_for_personas_returns_results(self, mozwebqa):
-        """
-        Test for Litmus 17349.
-        https://litmus.mozilla.org/show_test.cgi?id=17349
-        """
         amo_home_page = Home(mozwebqa)
-        amo_personas_page = amo_home_page.header.site_navigation_menu("Personas").click()
-        amo_personas_page.header.search_for('fox')
-
-        Assert.true(amo_personas_page.persona_count > 0)
-
-    @pytest.mark.native
-    @pytest.mark.nondestructive
-    def test_searching_for_theme_returns_results(self, mozwebqa):
-        """
-        Test for Litmus 17350
-        https://litmus.mozilla.org/show_test.cgi?id=17350
-        """
-        amo_home_page = Home(mozwebqa)
-        amo_themes_page = amo_home_page.header.site_navigation_menu("Themes").click()
-        search_results = amo_themes_page.header.search_for('nasa')
+        amo_addon_type_page = amo_home_page.header.site_navigation_menu(addon_type).click()
+        search_results = amo_addon_type_page.search_for(term)
 
         Assert.true(search_results.result_count > 0)
 
         for i in range(search_results.result_count):
             addon = search_results.result(i).click_result()
-            Assert.contains('Themes', addon.breadcrumb)
+            Assert.contains(breadcrumb_component, addon.breadcrumb)
             addon.return_to_previous_page()

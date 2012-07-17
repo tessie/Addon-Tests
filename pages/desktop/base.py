@@ -78,6 +78,19 @@ class Base(Page):
     def header(self):
         return Base.HeaderRegion(self.testsetup)
 
+    def search_for(self, search_term):
+        self.header.search_for(search_term)
+        from pages.desktop.collections import Collections, CollectionSearchResultList
+        from pages.desktop.personas import Personas, PersonasSearchResultList
+        if isinstance(self, (Collections, CollectionSearchResultList)):
+            return CollectionSearchResultList(self.testsetup)
+        elif isinstance(self, (Personas, PersonasSearchResultList)):
+            return PersonasSearchResultList(self.testsetup)
+        else:
+            from pages.desktop.search import SearchResultList
+            return SearchResultList(self.testsetup)
+
+
     @property
     def breadcrumbs(self):
         from pages.desktop.regions.breadcrumbs import Breadcrumbs
@@ -141,6 +154,7 @@ class Base(Page):
         _logout_locator = (By.CSS_SELECTOR, "li.nomenu.logout > a")
 
         _site_navigation_menus_locator = (By.CSS_SELECTOR, "#site-nav > ul > li")
+        _site_navigation_min_number_menus = 5
 
         def site_navigation_menu(self, value):
             #used to access one specific menu
@@ -152,6 +166,9 @@ class Base(Page):
         @property
         def site_navigation_menus(self):
             #returns a list containing all the site navigation menus
+            WebDriverWait(self.selenium, self.timeout).until(
+                lambda s: len(s.find_elements(*self._site_navigation_menus_locator)) >= 
+                self._site_navigation_min_number_menus)
             from pages.desktop.regions.header_menu import HeaderMenu
             return [HeaderMenu(self.testsetup, web_element) for web_element in self.selenium.find_elements(*self._site_navigation_menus_locator)]
 
@@ -173,8 +190,6 @@ class Base(Page):
             search_box = self.selenium.find_element(*self._search_textbox_locator)
             search_box.send_keys(search_term)
             self.selenium.find_element(*self._search_button_locator).click()
-            from pages.desktop.search import SearchHome
-            return SearchHome(self.testsetup)
 
         @property
         def search_field_placeholder(self):
@@ -254,20 +269,25 @@ class Base(Page):
             item_locator = (By.CSS_SELECTOR, " li:nth-child(4) a")
             hover_element = self.selenium.find_element(*self._account_controller_locator)
             click_element = self.selenium.find_element(*self._account_dropdown_locator).find_element(*item_locator)
+
+            # this method is flakey, it sometimes does not actually click
             ActionChains(self.selenium).move_to_element(hover_element).\
                 move_to_element(click_element).\
                 click().perform()
-
+            
             from pages.desktop.user import MyFavorites
             return MyFavorites(self.testsetup)
 
         @property
         def is_my_favorites_menu_present(self):
             hover_element = self.selenium.find_element(*self._account_controller_locator)
-            ActionChains(self.selenium).move_to_element(hover_element).perform()
 
-            target_element = self.selenium.find_element(*self._account_dropdown_locator).text
-            return 'My Favorites' in target_element
+            ActionChains(self.selenium).move_to_element(hover_element).perform()
+            menu_text = self.selenium.find_element(*self._account_dropdown_locator).text
+
+            if not 'My Profile' in menu_text:
+                print "ActionChains is being flakey again"
+            return 'My Favorites' in menu_text
 
         @property
         def is_user_logged_in(self):

@@ -43,6 +43,7 @@ class Details(Base):
     _version_information_locator = (By.ID, "detail-relnotes")
     _version_information_heading_locator = (By.CSS_SELECTOR, "#detail-relnotes > h2")
     _version_information_heading_link_locator = (By.CSS_SELECTOR, "#detail-relnotes > h2 > a")
+    _version_information_content_locator = (By.CSS_SELECTOR, "#detail-relnotes > div.content")
     _release_version_locator = (By.CSS_SELECTOR, "div.info > h3 > a")
     _source_code_license_information_locator = (By.CSS_SELECTOR, ".source > li > a")
     _reviews_title_locator = (By.CSS_SELECTOR, "#reviews > h2")
@@ -89,7 +90,7 @@ class Details(Base):
 
     # contribute to addon
     _contribute_button_locator = (By.ID, 'contribute-button')
-    _paypal_login_dialog_locator = (By.ID, 'wrapper')
+    _paypal_login_dialog_locator = (By.CSS_SELECTOR, '#page .content')
 
     def __init__(self, testsetup, addon_name=None):
         #formats name for url
@@ -112,9 +113,9 @@ class Details(Base):
 
     @property
     def no_restart(self):
-        try:
+        if self.is_element_present(*self._no_restart_locator):
             return self.selenium.find_element(*self._no_restart_locator).text
-        except:
+        else:
             return ""
 
     @property
@@ -140,7 +141,7 @@ class Details(Base):
         self.selenium.find_element(*self._daily_users_link_locator).click()
         from pages.desktop.statistics import Statistics
         stats_page = Statistics(self.testsetup)
-        WebDriverWait(self.selenium, self.timeout).until(lambda s: stats_page.is_chart_loaded) 
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: stats_page.is_chart_loaded)
         return stats_page
 
     @property
@@ -298,9 +299,9 @@ class Details(Base):
     def is_devs_comments_section_present(self):
         return self.is_element_present(*self._devs_comments_section_locator)
 
+    @property
     def is_devs_comments_section_expanded(self):
-        is_expanded = self.selenium.find_element(*self._devs_comments_section_locator).get_attribute("class")
-        return ("expanded" in is_expanded)
+        return self.is_element_visible(*self._devs_comments_message_locator)
 
     @property
     def part_of_collections_header(self):
@@ -451,17 +452,19 @@ class Details(Base):
         self.selenium.find_element(*self._review_link_locator).click()
         WebDriverWait(self.selenium, 10).until(lambda s: (self.selenium.execute_script('return window.pageYOffset')) > 1000)
 
-    def click_version_information_header(self):
+    def expand_version_information(self):
         self.selenium.find_element(*self._version_information_heading_link_locator).click()
-        WebDriverWait(self.selenium, 10).until(lambda s: self.is_version_information_section_expanded)
+        WebDriverWait(self.selenium, self.timeout).until(
+            lambda s: self.is_version_information_section_expanded)
 
     @property
     def is_version_information_section_expanded(self):
-        element_class = self.selenium.find_element(*self._version_information_locator).get_attribute("class")
-        return "expanded" in element_class
+        return self.is_element_visible(*self._version_information_content_locator)
 
-    def click_devs_comments(self):
+    def expand_devs_comments(self):
         self.selenium.find_element(*self._devs_comments_toggle_locator).click()
+        WebDriverWait(self.selenium, self.timeout).until(
+            lambda s: self.is_devs_comments_section_expanded)
 
     class OtherAddons(Page):
 
