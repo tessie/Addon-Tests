@@ -27,16 +27,19 @@ class Base(Page):
     def login(self, method="normal", user="default"):
         from pages.desktop.user import Login
 
-        if not self.header.is_browserid_login_available:
+        if method == "normal":
             login = self.header.click_login_normal()
-            login.login_when_browser_id_is_unavailable(user)
-        elif method == "normal":
-            self.selenium.get(self.base_url + "/en-US/firefox/users/login")
-            login = Login(self.testsetup)
             login.login_user_normal(user)
+
         elif method == "browserID":
-            login = self.header.click_login_browser_id()
-            login.login_user_browser_id(user)
+            is_browserid_login_available = self.header.is_browserid_login_available
+
+            if is_browserid_login_available:
+                login = self.header.click_login_browser_id()
+                login.login_user_browser_id(user)
+            else:
+                login = self.header.click_login_normal()
+                login.login_user_normal(user)
 
     @property
     def page_title(self):
@@ -82,14 +85,16 @@ class Base(Page):
         self.header.search_for(search_term)
         from pages.desktop.collections import Collections, CollectionSearchResultList
         from pages.desktop.personas import Personas, PersonasSearchResultList
+        from pages.desktop.themes import Themes, ThemesSearchResultList
         if isinstance(self, (Collections, CollectionSearchResultList)):
             return CollectionSearchResultList(self.testsetup)
         elif isinstance(self, (Personas, PersonasSearchResultList)):
             return PersonasSearchResultList(self.testsetup)
+        elif isinstance(self, (Themes, ThemesSearchResultList)):
+            return ThemesSearchResultList(self.testsetup)
         else:
             from pages.desktop.search import SearchResultList
             return SearchResultList(self.testsetup)
-
 
     @property
     def breadcrumbs(self):
@@ -166,9 +171,7 @@ class Base(Page):
         @property
         def site_navigation_menus(self):
             #returns a list containing all the site navigation menus
-            WebDriverWait(self.selenium, self.timeout).until(
-                lambda s: len(s.find_elements(*self._site_navigation_menus_locator)) >= 
-                self._site_navigation_min_number_menus)
+            WebDriverWait(self.selenium, self.timeout).until(lambda s: len(s.find_elements(*self._site_navigation_menus_locator)) >= self._site_navigation_min_number_menus)
             from pages.desktop.regions.header_menu import HeaderMenu
             return [HeaderMenu(self.testsetup, web_element) for web_element in self.selenium.find_elements(*self._site_navigation_menus_locator)]
 
@@ -219,7 +222,7 @@ class Base(Page):
 
         @property
         def is_browserid_login_available(self):
-            return self.is_element_visible(*self._login_browser_id_locator)
+            return self.is_element_present(*self._login_browser_id_locator)
 
         @property
         def is_login_link_visible(self):
@@ -274,7 +277,7 @@ class Base(Page):
             ActionChains(self.selenium).move_to_element(hover_element).\
                 move_to_element(click_element).\
                 click().perform()
-            
+
             from pages.desktop.user import MyFavorites
             return MyFavorites(self.testsetup)
 

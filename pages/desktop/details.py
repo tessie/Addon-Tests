@@ -100,6 +100,8 @@ class Details(Base):
             self.addon_name = re.sub(r'[^A-Za-z0-9\-]', '', self.addon_name).lower()
             self.addon_name = self.addon_name[:27]
             self.selenium.get("%s/addon/%s" % (self.base_url, self.addon_name))
+        WebDriverWait(self.selenium, self.timeout).until(
+            lambda s: self.is_element_visible(*self._title_locator))
 
     @property
     def _page_title(self):
@@ -107,8 +109,6 @@ class Details(Base):
 
     @property
     def title(self):
-        WebDriverWait(self.selenium, self.timeout).until(
-            lambda s: self.is_element_visible(*self._title_locator))
         base = self.selenium.find_element(*self._title_locator).text
         '''base = "firebug 1.8.9" we will have to remove version number for it'''
         return base.replace(self.version_number, '').replace(self.no_restart, '').strip()
@@ -412,8 +412,10 @@ class Details(Base):
         def click_image(self, image_no=0):
             images = self.selenium.find_elements(*self._image_locator)
             images[image_no].find_element(*self._link_locator).click()
+
             from pages.desktop.regions.image_viewer import ImageViewer
             image_viewer = ImageViewer(self.testsetup)
+            WebDriverWait(self.selenium, 10).until(lambda s: image_viewer.is_visible)
             return image_viewer
 
         def image_title(self, image_no):

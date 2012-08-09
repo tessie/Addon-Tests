@@ -28,12 +28,13 @@ class TestCollections:
         Assert.equal(featured_collections_page.default_selected_tab, "Featured")
 
     @pytest.mark.login
+    @pytest.mark.xfail(reason="bug 779116 - Cannot create new collection")
     def test_create_and_delete_collection(self, mozwebqa):
 
         home_page = Home(mozwebqa)
         collections_page = home_page.header.site_navigation_menu('Collections').click()
         create_collection_page = collections_page.click_create_collection_button()
-        home_page.login('browserID')
+        home_page.login()
 
         collection_uuid = uuid.uuid4().hex
         collection_time = repr(time.time())
@@ -63,7 +64,7 @@ class TestCollections:
         """
 
         home_page = Home(mozwebqa)
-        home_page.login("browserID")
+        home_page.login()
         Assert.true(home_page.is_the_current_page)
         Assert.true(home_page.header.is_user_logged_in)
 
@@ -80,7 +81,7 @@ class TestCollections:
         https://litmus.mozilla.org/show_test.cgi?id=15402
         """
         home_page = Home(mozwebqa)
-        home_page.login('browserID')
+        home_page.login()
         Assert.true(home_page.is_the_current_page)
         Assert.true(home_page.header.is_user_logged_in)
 
