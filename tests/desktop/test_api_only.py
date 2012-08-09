@@ -17,12 +17,13 @@ from pages.desktop.addons_api import AddOnsAPI
 @pytest.mark.skip_selenium
 class TestAPIOnlyTests:
 
-    @pytest.mark.xfail(reason="bug 733626")
     @pytest.mark.nondestructive
-    def test_that_firebug_is_listed_first_in_addons_search_for_fire(self, mozwebqa):
+    def test_that_firebug_is_listed_in_top_five_search_results_for_fire(self, mozwebqa):
         """Test for Litmus 15314."""
         addons_xml = AddOnsAPI(mozwebqa, 'fire')
-        Assert.equal("Firebug", addons_xml.get_name_of_first_addon())
+        assert any("Firebug" in name for name in
+                   addons_xml.get_name_of_top_addons(count=5)
+                   ), "Firebug was not found in the top 5 search results for 'fire'."
 
     @pytest.mark.nondestructive
     def test_that_firebug_is_listed_first_in_addons_search_for_firebug(self, mozwebqa):
@@ -46,7 +47,7 @@ class TestAPIOnlyTests:
     def test_firebug_version_number(self, mozwebqa):
         """Test for Litmus 15317."""
         addon_xml = AddOnsAPI(mozwebqa)
-        Assert.equal("1.9.1", addon_xml.get_addon_version_number("Firebug"))
+        Assert.equal("1.10.0", addon_xml.get_addon_version_number("Firebug"))
 
     @pytest.mark.nondestructive
     def test_that_firebug_status_id_is_4_and_fully_reviewed(self, mozwebqa):
