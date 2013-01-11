@@ -37,12 +37,13 @@ class Details(Base):
     _other_applications_locator = (By.ID, "other-apps")
     _compatibility_locator = (By.CSS_SELECTOR, '.meta.compat')
     _review_link_locator = (By.ID, 'reviews-link')
-    _daily_users_link_locator = (By.ID, 'daily-users')
+    _daily_users_link_locator = (By.CSS_SELECTOR, '#daily-users > a.stats')
 
     _about_addon_locator = (By.CSS_SELECTOR, "section.primary > h2")
     _version_information_locator = (By.ID, "detail-relnotes")
     _version_information_heading_locator = (By.CSS_SELECTOR, "#detail-relnotes > h2")
     _version_information_heading_link_locator = (By.CSS_SELECTOR, "#detail-relnotes > h2 > a")
+    _version_information_button_locator = (By.CSS_SELECTOR, "#detail-relnotes > h2 > a > b")
     _version_information_content_locator = (By.CSS_SELECTOR, "#detail-relnotes > div.content")
     _release_version_locator = (By.CSS_SELECTOR, "div.info > h3 > a")
     _source_code_license_information_locator = (By.CSS_SELECTOR, ".source > li > a")
@@ -81,7 +82,7 @@ class Details(Base):
 
     _development_channel_locator = (By.CSS_SELECTOR, "#beta-channel")
     _development_channel_toggle = (By.CSS_SELECTOR, '#beta-channel a.toggle')
-    _development_channel_install_button_locator = (By.CSS_SELECTOR, '#beta-channel p.install-button a.button')
+    _development_channel_install_button_locator = (By.CSS_SELECTOR, '#beta-channel p.install-button a.button.caution')
     _development_channel_title_locator = (By.CSS_SELECTOR, "#beta-channel h2")
     _development_channel_content_locator = (By.CSS_SELECTOR, "#beta-channel > div.content")
     _development_version_locator = (By.CSS_SELECTOR, '.beta-version')
@@ -95,7 +96,7 @@ class Details(Base):
     def __init__(self, testsetup, addon_name=None):
         #formats name for url
         Base.__init__(self, testsetup)
-        if (addon_name != None):
+        if (addon_name is not None):
             self.addon_name = addon_name.replace(" ", "-")
             self.addon_name = re.sub(r'[^A-Za-z0-9\-]', '', self.addon_name).lower()
             self.addon_name = self.addon_name[:27]
@@ -267,7 +268,7 @@ class Details(Base):
         self.selenium.find_element(*self._view_the_source_locator).click()
         from pages.desktop.addons_site import ViewAddonSource
         addon_source = ViewAddonSource(self.testsetup)
-        WebDriverWait(self.selenium, 10).until(lambda s: addon_source.is_file_viewer_visible)
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: addon_source.is_file_viewer_visible)
         return addon_source
 
     @property
@@ -353,7 +354,7 @@ class Details(Base):
 
     def click_website_link(self):
         self.selenium.find_element(*self._website_locator).click()
-        WebDriverWait(self.selenium, 10).until(lambda s: self.selenium.title)
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: self.selenium.title)
 
     @property
     def support_url(self):
@@ -415,16 +416,20 @@ class Details(Base):
 
             from pages.desktop.regions.image_viewer import ImageViewer
             image_viewer = ImageViewer(self.testsetup)
-            WebDriverWait(self.selenium, 10).until(lambda s: image_viewer.is_visible)
+            WebDriverWait(self.selenium, self.timeout).until(lambda s: image_viewer.is_visible)
             return image_viewer
 
         def image_title(self, image_no):
-            return self.selenium.find_element(self._image_locator[0],
-                        '%s:nth-child(%s) a' % (self._image_locator[1], image_no + 1)).get_attribute('title')
+            return self.selenium.find_element(
+                self._image_locator[0],
+                '%s:nth-child(%s) a' % (self._image_locator[1], image_no + 1)
+            ).get_attribute('title')
 
         def image_link(self, image_no):
-            return self.selenium.find_element(self._image_locator[0],
-                        '%s:nth-child(%s) a img' % (self._image_locator[1], image_no + 1)).get_attribute('src')
+            return self.selenium.find_element(
+                self._image_locator[0],
+                '%s:nth-child(%s) a img' % (self._image_locator[1], image_no + 1)
+            ).get_attribute('src')
 
         @property
         def image_count(self):
@@ -454,10 +459,10 @@ class Details(Base):
 
     def click_user_reviews_link(self):
         self.selenium.find_element(*self._review_link_locator).click()
-        WebDriverWait(self.selenium, 10).until(lambda s: (self.selenium.execute_script('return window.pageYOffset')) > 1000)
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: (self.selenium.execute_script('return window.pageYOffset')) > 1000)
 
     def expand_version_information(self):
-        self.selenium.find_element(*self._version_information_heading_link_locator).click()
+        self.selenium.find_element(*self._version_information_button_locator).click()
         WebDriverWait(self.selenium, self.timeout).until(
             lambda s: self.is_version_information_section_expanded)
 
@@ -566,7 +571,7 @@ class Details(Base):
         return self.is_element_visible(*self._paypal_login_dialog_locator)
 
     def _wait_for_favorite_addon_to_be_added(self):
-        WebDriverWait(self.selenium, 10).until(lambda s: not self.is_element_present(*self._add_to_favorites_updating_locator))
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: not self.is_element_present(*self._add_to_favorites_updating_locator))
 
     def click_add_to_favorites(self):
         self.selenium.find_element(*self._add_to_favorites_widget_locator).click()

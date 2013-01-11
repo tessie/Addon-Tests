@@ -13,13 +13,14 @@ class TestHome:
 
     expected_menu_items = ['MOZILLA FIREFOX', 'FEATURES', 'DESKTOP', 'ADD-ONS', 'SUPPORT', 'VISIT MOZILLA']
 
-    expected_tabs = ['Featured', 'Popular', 'Categories']
+    expected_tabs = ['Featured', 'Categories', 'Personas']
 
     expected_category_items = ['Alerts & Updates', 'Appearance', 'Bookmarks', 'Download Management',
                                'Feeds, News & Blogging', 'Games & Entertainment', 'Language Support',
                                'Photos, Music & Videos', 'Privacy & Security', 'Shopping', 'Social & Communication',
                                'Tabs', 'Web Development', 'Other']
 
+    @pytest.mark.xfail(reason='Bug 788152 - View mobile site\View full site links are not working as expected')
     @pytest.mark.nondestructive
     def test_that_checks_the_desktop_version_link(self, mozwebqa):
         home = Home(mozwebqa)
@@ -88,6 +89,9 @@ class TestHome:
         home = Home(mozwebqa)
         Assert.true(home.is_the_current_page)
         Assert.equal(home.default_selected_tab_text, 'Featured')
+
+        home.scroll_down  # workaround for selenium scroll issue
+
         featured_extensions = home.click_all_featured_addons_link()
 
         Assert.equal(featured_extensions.title, 'MOBILE ADD-ONS')
@@ -120,6 +124,8 @@ class TestHome:
         menu_names = [menu.name for menu in home.header.dropdown_menu_items]
         Assert.equal(menu_names, self.expected_menu_items)
 
+    @pytest.mark.xfail(reason='Bug 824471 - New Personas tab on mobile site not working as expected')
+    # https://bugzilla.mozilla.org/show_bug.cgi?id=824471
     def test_that_checks_the_tabs(self, mozwebqa):
         """
         Test for Litmus 15128.
@@ -133,8 +139,9 @@ class TestHome:
         for tab in reversed(range(len(home.tabs))):
             Assert.equal(self.expected_tabs[tab], home.tabs[tab].name)
             home.tabs[tab].click()
-            Assert.true(home.tabs[tab].is_tab_selected)
-            Assert.true(home.tabs[tab].is_tab_content_visible)
+            Assert.true(home.tabs[tab].is_tab_selected, "The tab '%s' is not selected." % home.tabs[tab].name)
+            Assert.true(home.tabs[tab].is_tab_content_visible,
+                        "The content of tab '%s' is not visible." % home.tabs[tab].name)
 
     @pytest.mark.nondestructive
     def test_the_amo_logo_text_and_title(self, mozwebqa):
@@ -147,7 +154,7 @@ class TestHome:
 
         Assert.equal('Return to the Firefox Add-ons homepage', home.logo_title)
         Assert.equal('FIREFOX ADD-ONS', home.logo_text)
-        Assert.contains('.org/media/img/zamboni/app_icons/firefox.png', home.logo_image_src)
+        Assert.contains('/media/img/zamboni/app_icons/firefox.png', home.logo_image_src)
         Assert.equal('Easy ways to personalize.', home.subtitle)
 
     @pytest.mark.nondestructive

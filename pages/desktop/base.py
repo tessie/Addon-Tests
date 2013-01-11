@@ -43,7 +43,7 @@ class Base(Page):
 
     @property
     def page_title(self):
-        WebDriverWait(self.selenium, 10).until(lambda s: self.selenium.title)
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: self.selenium.title)
         return self.selenium.title
 
     @property
@@ -84,14 +84,14 @@ class Base(Page):
     def search_for(self, search_term):
         self.header.search_for(search_term)
         from pages.desktop.collections import Collections, CollectionSearchResultList
-        from pages.desktop.personas import Personas, PersonasSearchResultList
         from pages.desktop.themes import Themes, ThemesSearchResultList
+        from pages.desktop.full_themes import FullThemes, FullThemesSearchResultList
         if isinstance(self, (Collections, CollectionSearchResultList)):
             return CollectionSearchResultList(self.testsetup)
-        elif isinstance(self, (Personas, PersonasSearchResultList)):
-            return PersonasSearchResultList(self.testsetup)
         elif isinstance(self, (Themes, ThemesSearchResultList)):
             return ThemesSearchResultList(self.testsetup)
+        elif isinstance(self, (FullThemes, FullThemesSearchResultList)):
+            return FullThemesSearchResultList(self.testsetup)
         else:
             from pages.desktop.search import SearchResultList
             return SearchResultList(self.testsetup)
@@ -159,7 +159,8 @@ class Base(Page):
         _logout_locator = (By.CSS_SELECTOR, "li.nomenu.logout > a")
 
         _site_navigation_menus_locator = (By.CSS_SELECTOR, "#site-nav > ul > li")
-        _site_navigation_min_number_menus = 5
+        _site_navigation_min_number_menus = 4
+        _full_themes_menu_locator = (By.CSS_SELECTOR, '#site-nav div > a.full-themes > b')
 
         def site_navigation_menu(self, value):
             #used to access one specific menu
@@ -174,6 +175,15 @@ class Base(Page):
             WebDriverWait(self.selenium, self.timeout).until(lambda s: len(s.find_elements(*self._site_navigation_menus_locator)) >= self._site_navigation_min_number_menus)
             from pages.desktop.regions.header_menu import HeaderMenu
             return [HeaderMenu(self.testsetup, web_element) for web_element in self.selenium.find_elements(*self._site_navigation_menus_locator)]
+
+        def click_full_themes(self):
+            themes_menu = self.selenium.find_element(By.CSS_SELECTOR, '#themes')
+            full_themes_menu = self.selenium.find_element(*self._full_themes_menu_locator)
+            ActionChains(self.selenium).move_to_element(themes_menu).\
+                move_to_element(full_themes_menu).click().\
+                perform()
+            from pages.desktop.full_themes import FullThemes
+            return FullThemes(self.testsetup)
 
         def click_other_application(self, other_app):
             hover_locator = self.selenium.find_element(*self._other_applications_locator)
@@ -233,7 +243,11 @@ class Base(Page):
             return self.is_element_visible(*self._register_locator)
 
         def click_logout(self):
-            self.selenium.find_element(*self._logout_locator).click()
+            hover_element = self.selenium.find_element(*self._account_controller_locator)
+            click_element = self.selenium.find_element(*self._logout_locator)
+            ActionChains(self.selenium).move_to_element(hover_element).\
+                move_to_element(click_element).\
+                click().perform()
 
         def click_edit_profile(self):
             item_locator = (By.CSS_SELECTOR, " li:nth-child(2) a")
@@ -255,6 +269,9 @@ class Base(Page):
                 click().perform()
 
             from pages.desktop.user import ViewProfile
+            view_profile_page = ViewProfile(self.testsetup)
+            # Force a wait for the view_profile_page
+            view_profile_page.is_the_current_page
             return ViewProfile(self.testsetup)
 
         def click_my_collections(self):

@@ -34,13 +34,10 @@ class TestHome:
             "Download Management", "Feeds, News & Blogging", "Games & Entertainment",
             "Language Support", "Photos, Music & Videos", "Privacy & Security", "Shopping",
             "Social & Communication", "Tabs", "Web Development", "Other"]),
-        HeaderMenu('PERSONAS', [
+        HeaderMenu('THEMES', [
             "Most Popular", "Top Rated", "Newest", "Abstract", "Causes", "Fashion", "Film and TV",
             "Firefox", "Foxkeh", "Holiday", "Music", "Nature", "Other", "Scenery", "Seasonal",
             "Solid", "Sports", "Websites"]),
-        HeaderMenu('THEMES', [
-            "Most Popular", "Top Rated", "Newest", "Animals", "Compact", "Large", "Miscellaneous",
-            "Modern", "Nature", "OS Integration", "Retro", "Sports"]),
         HeaderMenu('COLLECTIONS', [
             "Featured", "Most Followers", "Newest", "Collections I've Made",
             "Collections I'm Following", "My Favorite Add-ons"]),
@@ -79,26 +76,26 @@ class TestHome:
 
     @pytest.mark.smoke
     @pytest.mark.nondestructive
-    def test_that_featured_personas_exist_on_the_home(self, mozwebqa):
+    def test_that_featured_themes_exist_on_the_home(self, mozwebqa):
         """
         Test for Litmus29698.
         https://litmus.mozilla.org/show_test.cgi?id=29698
         """
         home_page = Home(mozwebqa)
-        Assert.equal(home_page.featured_personas_title, u'Featured Personas See all \xbb', 'Featured Personas region title doesn\'t match')
-        Assert.less_equal(home_page.featured_personas_count, 6)
+        Assert.equal(home_page.featured_themes_title, u'Featured Themes See all \xbb', 'Featured Themes region title doesn\'t match')
+        Assert.less_equal(home_page.featured_themes_count, 6)
 
     @pytest.mark.nondestructive
-    def test_that_clicking_see_all_personas_link_works(self, mozwebqa):
+    def test_that_clicking_see_all_themes_link_works(self, mozwebqa):
         """
         Test for Litmus 29699.
         https://litmus.mozilla.org/show_test.cgi?id=29699
         """
         home_page = Home(mozwebqa)
-        featured_persona_page = home_page.click_featured_personas_see_all_link()
+        featured_theme_page = home_page.click_featured_themes_see_all_link()
 
-        Assert.true(featured_persona_page.is_the_current_page)
-        Assert.equal(featured_persona_page.persona_header, 'Personas')
+        Assert.true(featured_theme_page.is_the_current_page)
+        Assert.equal(featured_theme_page.theme_header, 'Themes')
 
     @pytest.mark.native
     @pytest.mark.nondestructive
@@ -224,7 +221,7 @@ class TestHome:
     @pytest.mark.native
     @pytest.mark.nondestructive
     @pytest.mark.litmus([25745, 25747, 25749, 25751, 25754, 25756, 25758, 25760, 25763, 25764])
-    @pytest.mark.xfail(reason = 'Disabled until the issue causing the fail is found and fixed.')
+    @pytest.mark.xfail(reason='Disabled until the issue causing the fail is found and fixed.')
     def test_the_name_of_each_site_navigation_menu_in_the_header(self, mozwebqa):
         home_page = Home(mozwebqa)
 
@@ -275,7 +272,6 @@ class TestHome:
             up_and_coming_island.pager.prev()
 
     @pytest.mark.native
-    @pytest.mark.xfail(reason = "very flaky, see refactor task: https://www.pivotaltracker.com/story/show/28494843")
     @pytest.mark.nondestructive
     def test_addons_author_link(self, mozwebqa):
         """
@@ -314,3 +310,29 @@ class TestHome:
         featured_extension_page = home_page.click_featured_extensions_see_all_link()
         Assert.true(featured_extension_page.is_the_current_page)
         Assert.true(featured_extension_page.get_url_current_page().endswith('/extensions/?sort=featured'))
+
+    @pytest.mark.litmus([25792])
+    @pytest.mark.nondestructive
+    def test_that_checks_all_categories_side_navigation(self, mozwebqa):
+        """
+        Test for Litmus 25792.
+        https://litmus.mozilla.org/show_test.cgi?searchType=by_id&id=25792
+        """
+        home_page = Home(mozwebqa)
+        category_region = home_page.get_category()
+
+        Assert.equal('CATEGORIES', category_region.categories_side_navigation_header_text)
+        Assert.equal('Alerts & Updates', category_region.categories_alert_updates_header_text)
+        Assert.equal('Appearance', category_region.categories_appearance_header_text)
+        Assert.equal('Bookmarks', category_region.categories_bookmark_header_text)
+        Assert.equal('Download Management', category_region.categories_download_management_header_text)
+        Assert.equal('Feeds, News & Blogging', category_region.categories_feed_news_blog_header_text)
+        Assert.equal('Games & Entertainment', category_region.categories_games_entertainment_header_text)
+        Assert.equal('Language Support', category_region.categories_language_support_header_text)
+        Assert.equal('Photos, Music & Videos', category_region.categories_photo_music_video_header_text)
+        Assert.equal('Privacy & Security', category_region.categories_privacy_security_header_text)
+        Assert.equal('Shopping', category_region.categories_shopping_header_text)
+        Assert.equal('Social & Communication', category_region.categories_social_communication_header_text)
+        Assert.equal('Tabs', category_region.categories_tabs_header_text)
+        Assert.equal('Web Development', category_region.categories_web_development_header_text)
+        Assert.equal('Other', category_region.categories_other_header_text)
