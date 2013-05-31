@@ -13,14 +13,13 @@ class TestHome:
 
     expected_menu_items = ['MOZILLA FIREFOX', 'FEATURES', 'DESKTOP', 'ADD-ONS', 'SUPPORT', 'VISIT MOZILLA']
 
-    expected_tabs = ['Featured', 'Categories', 'Personas']
+    expected_tabs = ['Featured', 'Categories', 'Themes']
 
     expected_category_items = ['Alerts & Updates', 'Appearance', 'Bookmarks', 'Download Management',
                                'Feeds, News & Blogging', 'Games & Entertainment', 'Language Support',
                                'Photos, Music & Videos', 'Privacy & Security', 'Shopping', 'Social & Communication',
                                'Tabs', 'Web Development', 'Other']
 
-    @pytest.mark.xfail(reason='Bug 788152 - View mobile site\View full site links are not working as expected')
     @pytest.mark.nondestructive
     def test_that_checks_the_desktop_version_link(self, mozwebqa):
         home = Home(mozwebqa)
@@ -40,7 +39,7 @@ class TestHome:
         home = Home(mozwebqa)
         Assert.true(home.is_the_current_page)
 
-        Assert.equal('FIREFOX ADD-ONS', home.header_text)
+        Assert.equal('ADD-ONS', home.header_text)
         Assert.equal('Return to the Firefox Add-ons homepage', home.header_title)
         Assert.equal('Easy ways to personalize.', home.header_statement_text)
 
@@ -153,7 +152,7 @@ class TestHome:
         Assert.true(home.is_the_current_page)
 
         Assert.equal('Return to the Firefox Add-ons homepage', home.logo_title)
-        Assert.equal('FIREFOX ADD-ONS', home.logo_text)
+        Assert.equal('ADD-ONS', home.logo_text)
         Assert.contains('/media/img/zamboni/app_icons/firefox.png', home.logo_image_src)
         Assert.equal('Easy ways to personalize.', home.subtitle)
 
