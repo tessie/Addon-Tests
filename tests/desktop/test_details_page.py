@@ -385,6 +385,8 @@ class TestDetails:
             details_pg = Details(mozwebqa, 'Firebug')
 
     @pytest.mark.nondestructive
+    @pytest.mark.xfail("config.getvalue('platform') == 'Mac 10.6'",
+                       reason="issue 581 - Intermittent failure on amo.dev.mac.saucelabs - element not displayed")
     def test_the_development_channel_section(self, mozwebqa):
         """
         Test for Litmus 25732.
@@ -435,6 +437,8 @@ class TestDetails:
         details_page = Details(mozwebqa, 'firebug')
         Assert.contains("active", details_page.click_and_hold_install_button_returns_class_value())
 
+    @pytest.mark.xfail("config.getvalue('base_url') == 'https://addons-dev.allizom.org'",
+                       reason="[dev] Whats this? missing from Memchaser app under Version Information")
     @pytest.mark.nondestructive
     def test_what_is_this_in_the_version_information(self, mozwebqa):
         """
@@ -448,7 +452,6 @@ class TestDetails:
         Assert.equal("Frequently Asked Questions", license_faq.header_text)
 
     @pytest.mark.nondestructive
-    @pytest.mark.xfail("config.getvalue('base_url') == 'https://addons-dev.allizom.org'", reason="Bug 899956 - [dev] Can't view MemChaser source code")
     def test_view_the_source_in_the_version_information(self, mozwebqa):
         details_page = Details(mozwebqa, "MemChaser")
         Assert.equal(details_page.version_information_heading, "Version Information")

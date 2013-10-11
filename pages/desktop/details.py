@@ -79,6 +79,7 @@ class Details(Base):
     _add_to_collection_widget_login_link_locator = (By.CSS_SELECTOR, "div.collection-add-login p:nth-child(3) > a")
     _add_to_favorites_widget_locator = (By.CSS_SELECTOR, 'div.widgets > a.favorite')
 
+    _development_channel_content_locator = (By.CSS_SELECTOR, '.content > p')
     _development_channel_locator = (By.CSS_SELECTOR, "#beta-channel")
     _development_channel_toggle = (By.CSS_SELECTOR, '#beta-channel a.toggle')
     _development_channel_install_button_locator = (By.CSS_SELECTOR, '#beta-channel p.install-button a.button.caution')
@@ -520,7 +521,10 @@ class Details(Base):
         return self.selenium.find_element(*self._development_channel_title_locator).text
 
     def click_development_channel(self):
+        expander = self.selenium.find_element(*self._development_channel_toggle)
+        expander_saved_class = expander.get_attribute('class')
         self.selenium.find_element(*self._development_channel_toggle).click()
+        WebDriverWait(self.selenium, self.timeout).until(lambda s: expander.get_attribute('class') is not expander_saved_class)
 
     @property
     def is_development_channel_expanded(self):
@@ -529,7 +533,10 @@ class Details(Base):
 
     @property
     def is_development_channel_install_button_visible(self):
-        return self.is_element_visible(*self._development_channel_install_button_locator)
+        WebDriverWait(self.selenium, self.timeout).until(
+            lambda s: self.is_element_visible(*self._development_channel_install_button_locator),
+            "Timeout waiting for 'development channel install' button.")
+        return True
 
     @property
     def development_channel_content(self):
@@ -547,10 +554,11 @@ class Details(Base):
             Page.__init__(self, testsetup)
 
             WebDriverWait(self.selenium, self.timeout).until(
-                lambda s: s.find_element(*self._make_contribution_button_locator),
+                lambda s: s.find_element(*self._make_contribution_button_locator).is_displayed(),
                 "Timeout waiting for 'make contribution' button.")
 
         def click_make_contribution_button(self):
+            self.selenium.maximize_window()
             self.selenium.find_element(*self._make_contribution_button_locator).click()
             from pages.desktop.regions.paypal_frame import PayPalFrame
             return PayPalFrame(self.testsetup)
