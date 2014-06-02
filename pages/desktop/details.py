@@ -20,7 +20,7 @@ class Details(Base):
     _breadcrumb_locator = (By.ID, "breadcrumbs")
 
     # addon informations
-    _title_locator = (By.CSS_SELECTOR, 'hgroup .addon')
+    _title_locator = (By.CSS_SELECTOR, 'hgroup .addon span[itemprop="name"]')
     _version_number_locator = (By.CSS_SELECTOR, "span.version-number")
     _no_restart_locator = (By.CSS_SELECTOR, "span.no-restart")
     _authors_locator = (By.XPATH, "//h4[@class='author']/a")
@@ -110,12 +110,7 @@ class Details(Base):
 
     @property
     def title(self):
-        base = self.selenium.find_element(*self._title_locator).text
-        '''base = "firebug 1.8.9" we will have to remove version number for it'''
-        if "Themes" in self.selenium.find_element(*self._breadcrumb_locator).text:
-            return base
-        else:
-            return base.replace(self.version_number, '').replace(self.no_restart, '').strip()
+        return self.selenium.find_element(*self._title_locator).text
 
     @property
     def no_restart(self):
